@@ -1,0 +1,18 @@
+{
+  "rules": [
+    {
+      "object": "Account",
+      "input": "sample_accounts.csv",
+      "match_fields": ["Name", "Email"],
+      "master_field": "LastModifiedDate",
+      "strategy": "highest"
+    },
+    {
+      "object": "Contact",
+      "input": "sample_contacts.csv",
+      "match_fields": ["AccountId", "Email"],
+      "master_field": "LastModifiedDate",
+      "strategy": "highest"
+    }
+  ]
+}

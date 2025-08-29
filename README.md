@@ -24,7 +24,15 @@ python cli.py sample_accounts.csv --match-fields Name Email \
 
 The example above groups records that share the same `Name` and `Email` and selects the record with the most recent `LastModifiedDate` as the master.
 
-Sample data is provided in `sample_accounts.csv`.
+Sample account data is provided in `sample_accounts.csv`. A contacts example lives in `sample_contacts.csv`.
+
+You can also run multiple rule sets in one go using a JSON config:
+
+```bash
+python cli.py --config rules.json
+```
+
+Each entry in `rules.json` specifies the object, input file, matching fields, master field and strategy.
 
 ## Web UI
 
