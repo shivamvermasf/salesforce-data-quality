@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Salesforce Duplicate Detector</title>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/redux@4/umd/redux.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-redux@7/umd/react-redux.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const { createStore } = Redux;
+      const { Provider, connect } = ReactRedux;
+
+      const initialState = {
+        match_fields: '',
+        master_field: '',
+        strategy: 'highest',
+        duplicates: []
+      };
+
+      function reducer(state = initialState, action) {
+        switch (action.type) {
+          case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+          case 'SET_DUPLICATES':
+            return { ...state, duplicates: action.value };
+          default:
+            return state;
+        }
+      }
+
+      const store = createStore(reducer);
+
+      function App({ match_fields, master_field, strategy, duplicates, dispatch }) {
+        const onSubmit = (e) => {
+          e.preventDefault();
+          const file = e.target.file.files[0];
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('match_fields', match_fields);
+          fd.append('master_field', master_field);
+          fd.append('strategy', strategy);
+          fetch('/detect', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => dispatch({ type: 'SET_DUPLICATES', value: data }))
+            .catch(err => alert(err));
+        };
+
+        return React.createElement('div', null,
+          React.createElement('h1', null, 'Salesforce Duplicate Detector'),
+          React.createElement('form', { onSubmit: onSubmit, encType: 'multipart/form-data' },
+            React.createElement('div', null,
+              React.createElement('label', null, 'Data file:',
+                React.createElement('input', { type: 'file', name: 'file', required: true })
+              )
+            ),
+            React.createElement('div', null,
+              React.createElement('label', null, 'Match fields:',
+                React.createElement('input', {
+                  type: 'text',
+                  value: match_fields,
+                  onChange: e => dispatch({ type: 'SET_FIELD', field: 'match_fields', value: e.target.value })
+                })
+              )
+            ),
+            React.createElement('div', null,
+              React.createElement('label', null, 'Master field:',
+                React.createElement('input', {
+                  type: 'text',
+                  value: master_field,
+                  onChange: e => dispatch({ type: 'SET_FIELD', field: 'master_field', value: e.target.value })
+                })
+              )
+            ),
+            React.createElement('div', null,
+              React.createElement('label', null, 'Strategy:',
+                React.createElement('select', {
+                  value: strategy,
+                  onChange: e => dispatch({ type: 'SET_FIELD', field: 'strategy', value: e.target.value })
+                },
+                  React.createElement('option', { value: 'highest' }, 'Highest'),
+                  React.createElement('option', { value: 'lowest' }, 'Lowest')
+                )
+              )
+            ),
+            React.createElement('button', { type: 'submit' }, 'Find duplicates')
+          ),
+          duplicates.length > 0 && React.createElement('pre', null, JSON.stringify(duplicates, null, 2))
+        );
+      }
+
+      const ConnectedApp = connect(state => state)(App);
+
+      ReactDOM.render(
+        React.createElement(Provider, { store }, React.createElement(ConnectedApp)),
+        document.getElementById('root')
+      );
+    </script>
+  </body>
+</html>
